@@ -8,10 +8,14 @@ import OperationsTable from "@/components/OperationsTable";
 import ExitTickets from "@/components/ExitTickets";
 import NetworkStats from "@/components/NetworkStats";
 import StatusSummary from "@/components/StatusSummary";
+import V1StakesSummary from "@/components/V1StakesSummary";
 import type { Stake, Reward, Operation, ExitTicket, NetworkStats as NetworkStatsType } from "@/lib/types";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface ReportData {
   stakes: Stake[];
+  v1Stakes: any[];
   rewards: Reward[];
   operations: Operation[];
   exitTickets: ExitTicket[];
@@ -48,12 +52,10 @@ export default function Home() {
       ]);
 
       if (!stakesRes.ok) throw new Error(stakesJson.error || `Stakes API error: ${stakesRes.status}`);
-      if (!rewardsRes.ok) throw new Error(rewardsJson.error || `Rewards API error: ${rewardsRes.status}`);
-      if (!operationsRes.ok) throw new Error(operationsJson.error || `Operations API error: ${operationsRes.status}`);
-      if (!exitTicketsRes.ok) throw new Error(exitTicketsJson.error || `Exit tickets API error: ${exitTicketsRes.status}`);
 
       let networkStats: NetworkStatsType | null = null;
       const stakes: Stake[] = stakesJson.data || [];
+      const v1Stakes: any[] = stakesJson.v1_data || [];
       if (stakes.length > 0 && stakes[0].integration_address) {
         try {
           const nsRes = await fetch(`/api/network-stats?integration=${stakes[0].integration_address}`);
@@ -68,6 +70,7 @@ export default function Home() {
 
       setData({
         stakes,
+        v1Stakes,
         rewards: rewardsJson.data || [],
         operations: operationsJson.data || [],
         exitTickets: exitTicketsJson.data || [],
@@ -123,12 +126,13 @@ export default function Home() {
               <code className="bg-card rounded px-2 py-0.5 font-mono text-foreground text-xs">{wallet}</code>
             </div>
 
-            <StatusSummary stakes={data.stakes} operations={data.operations} exitTickets={data.exitTickets} />
+            <StatusSummary stakes={data.stakes} v1Stakes={data.v1Stakes} operations={data.operations} exitTickets={data.exitTickets} />
             {data.networkStats && <NetworkStats stats={data.networkStats} />}
             <StakesSummary stakes={data.stakes} />
             <RewardsTable rewards={data.rewards} />
             <OperationsTable operations={data.operations} />
             <ExitTickets tickets={data.exitTickets} />
+            {data.v1Stakes.length > 0 && <V1StakesSummary stakes={data.v1Stakes} />}
           </>
         )}
 

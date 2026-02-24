@@ -1,10 +1,12 @@
 "use client";
 
 import type { Stake, Operation, ExitTicket } from "@/lib/types";
-import { formatEth } from "@/lib/format";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface Props {
   stakes: Stake[];
+  v1Stakes: any[];
   operations: Operation[];
   exitTickets: ExitTicket[];
 }
@@ -17,11 +19,18 @@ interface StatusItem {
   description: string;
 }
 
-export default function StatusSummary({ stakes, operations, exitTickets }: Props) {
+export default function StatusSummary({ stakes, v1Stakes, operations, exitTickets }: Props) {
   const items: StatusItem[] = [];
 
   const totalBalance = stakes.reduce((sum, s) => sum + Number(BigInt(s.balance)), 0);
   const totalRewards = stakes.reduce((sum, s) => sum + Number(BigInt(s.rewards)), 0);
+
+  const v1Active = v1Stakes.filter((s: any) => s.state === "active_ongoing");
+  const v1Exiting = v1Stakes.filter((s: any) => s.state === "active_exiting");
+  const v1WithdrawReady = v1Stakes.filter((s: any) => s.state === "withdrawal_possible");
+  const v1Withdrawn = v1Stakes.filter((s: any) => s.state === "withdrawal_done");
+  const v1TotalBalance = v1Stakes.reduce((sum: number, s: any) => sum + Number(BigInt(s.balance || "0")), 0);
+  const v1TotalRewards = v1Stakes.reduce((sum: number, s: any) => sum + Number(BigInt(s.rewards || "0")), 0);
 
   const claimableTickets = exitTickets.filter(t => t.state === "fulfillable");
   const pendingTickets = exitTickets.filter(t => t.state === "unfulfillable");
@@ -44,16 +53,16 @@ export default function StatusSummary({ stakes, operations, exitTickets }: Props
       title: "Actively Staking",
       description: `This wallet has ${(totalBalance / 1e18).toFixed(4)} ETH actively staked across ${stakes.length} position${stakes.length !== 1 ? "s" : ""} and has earned ${(totalRewards / 1e18).toFixed(6)} ETH in rewards so far.`,
     });
-  } else if (stakes.length === 0 && exitTickets.length === 0 && operations.length === 0) {
+  } else if (stakes.length === 0 && v1Stakes.length === 0 && exitTickets.length === 0 && operations.length === 0) {
     items.push({
       icon: "○",
       color: "text-muted",
       bg: "bg-card border-card-border",
       title: "No Staking Activity",
-      description: "This wallet has no staking positions, no pending exits, and no past operations on Kiln's on-chain v2 pools.",
+      description: "This wallet has no staking positions, no pending exits, and no past operations found through Kiln.",
     });
     return <SummaryCard items={items} />;
-  } else if (totalBalance === 0 && stakes.length === 0) {
+  } else if (totalBalance === 0 && stakes.length === 0 && v1Stakes.length === 0) {
     items.push({
       icon: "○",
       color: "text-muted",
@@ -93,6 +102,47 @@ export default function StatusSummary({ stakes, operations, exitTickets }: Props
       bg: "bg-accent/10 border-accent/30",
       title: "Unstaking in Progress",
       description: `There ${pendingTickets.length === 1 ? "is" : "are"} ${pendingTickets.length} exit ticket${pendingTickets.length !== 1 ? "s" : ""} with ${(pendingAmount / 1e18).toFixed(6)} ETH still in the exit queue. This ETH is being processed and is not yet available to claim.`,
+    });
+  }
+
+  // V1 validator-level statuses
+  if (v1Active.length > 0) {
+    items.push({
+      icon: "●",
+      color: "text-success",
+      bg: "bg-success/10 border-success/30",
+      title: `${v1Active.length} Active Validator${v1Active.length !== 1 ? "s" : ""}`,
+      description: `This wallet has ${v1Active.length} validator${v1Active.length !== 1 ? "s" : ""} actively earning rewards with a combined balance of ${(v1TotalBalance / 1e18).toFixed(4)} ETH and ${(v1TotalRewards / 1e18).toFixed(6)} ETH in total rewards.`,
+    });
+  }
+
+  if (v1Exiting.length > 0) {
+    items.push({
+      icon: "◷",
+      color: "text-warning",
+      bg: "bg-warning/10 border-warning/30",
+      title: `${v1Exiting.length} Validator${v1Exiting.length !== 1 ? "s" : ""} Exiting`,
+      description: `${v1Exiting.length} validator${v1Exiting.length !== 1 ? "s are" : " is"} currently in the process of exiting. The ETH will be available to withdraw once the exit is complete.`,
+    });
+  }
+
+  if (v1WithdrawReady.length > 0) {
+    items.push({
+      icon: "!",
+      color: "text-warning",
+      bg: "bg-warning/10 border-warning/30",
+      title: `Action Needed: ${v1WithdrawReady.length} Validator${v1WithdrawReady.length !== 1 ? "s" : ""} Ready to Withdraw`,
+      description: `${v1WithdrawReady.length} validator${v1WithdrawReady.length !== 1 ? "s have" : " has"} finished exiting and the ETH is ready to be withdrawn.`,
+    });
+  }
+
+  if (v1Withdrawn.length > 0) {
+    items.push({
+      icon: "✓",
+      color: "text-muted",
+      bg: "bg-card border-card-border",
+      title: `${v1Withdrawn.length} Validator${v1Withdrawn.length !== 1 ? "s" : ""} Fully Withdrawn`,
+      description: `${v1Withdrawn.length} validator${v1Withdrawn.length !== 1 ? "s have" : " has"} been fully exited and withdrawn in the past.`,
     });
   }
 

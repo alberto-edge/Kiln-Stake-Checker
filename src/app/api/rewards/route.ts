@@ -14,12 +14,17 @@ export async function GET(request: NextRequest) {
   if (endDate) params.end_date = endDate;
 
   try {
-    const res = await kilnFetch("/eth/onchain/v2/rewards", params);
-    const data = await res.json();
-    if (!res.ok) {
-      return NextResponse.json(data, { status: res.status });
-    }
-    return NextResponse.json(data);
+    const [v2Res, v1Res] = await Promise.all([
+      kilnFetch("/eth/onchain/v2/rewards", params),
+      kilnFetch("/eth/rewards", params),
+    ]);
+
+    const v2Data = v2Res.ok ? await v2Res.json() : { data: [] };
+    const v1Data = v1Res.ok ? await v1Res.json() : { data: [] };
+
+    const data = (v2Data.data && v2Data.data.length > 0) ? v2Data.data : (v1Data.data || []);
+
+    return NextResponse.json({ data });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

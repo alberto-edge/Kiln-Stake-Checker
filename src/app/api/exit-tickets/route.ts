@@ -9,11 +9,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const res = await kilnFetch("/eth/onchain/v2/exit-tickets", { wallets });
-    const data = await res.json();
-    if (!res.ok) {
-      return NextResponse.json(data, { status: res.status });
+    if (res.ok) {
+      const data = await res.json();
+      return NextResponse.json(data);
     }
-    return NextResponse.json(data);
+    return NextResponse.json({ data: [] });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
