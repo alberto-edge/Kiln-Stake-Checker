@@ -93,3 +93,46 @@ export interface NetworkStats {
     operator_address: string;
   }[];
 }
+
+// ── Cardano (ADA) ──
+
+export interface AdaStake {
+  wallet_addresses: string[];
+  stake_address: string;
+  pool_id: string;
+  active_pool_saturation: string;
+  live_pool_saturation: string;
+  free_space_estimation: string;
+  balance: string;
+  rewards: string;
+  available_rewards: string;
+  delegated_epoch: number;
+  delegated_at: string;
+  activated_epoch: number;
+  activated_at: string;
+  state: "active" | "inactive";
+  net_apy: number;
+  updated_at: string;
+}
+
+export interface AdaReward {
+  date: string;
+  rewards: string;
+  active_balance: string;
+  net_apy: number;
+  rewards_usd?: number;
+  active_balance_usd?: number;
+}
+
+export interface AdaOperation {
+  type: "stake_registration" | "stake_deregistration" | "delegation" | "reward" | "withdrawal";
+  time: string;
+  stake_address: string;
+  epoch: number;
+  block?: number;
+  tx_hash?: string;
+  pool_id?: string;
+  amount?: string;
+}
+
+export type Chain = "eth" | "ada";

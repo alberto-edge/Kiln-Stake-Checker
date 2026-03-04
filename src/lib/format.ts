@@ -36,3 +36,26 @@ export function etherscanTxUrl(hash: string): string {
 export function etherscanAddressUrl(address: string): string {
   return `https://etherscan.io/address/${address}`;
 }
+
+// ── Cardano (ADA) ──
+
+export function lovelaceToAda(lovelace: string | number): number {
+  return Number(BigInt(lovelace)) / 1e6;
+}
+
+export function formatAda(lovelace: string | number, decimals = 6): string {
+  return lovelaceToAda(lovelace).toFixed(decimals);
+}
+
+export function cardanoscanTxUrl(hash: string): string {
+  return `https://cardanoscan.io/transaction/${hash}`;
+}
+
+export function cardanoscanAddressUrl(address: string): string {
+  return `https://cardanoscan.io/address/${address}`;
+}
+
+export function shortenPoolId(poolId: string): string {
+  if (poolId.length <= 20) return poolId;
+  return `${poolId.slice(0, 12)}...${poolId.slice(-6)}`;
+}
