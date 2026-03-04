@@ -148,7 +148,7 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold">Kiln Stake Checker</h1>
+            <h1 className="text-xl font-bold">Kiln Stake Checker 🥩✅</h1>
           </div>
           <p className="text-sm text-muted">Look up staking positions, rewards, and operations by wallet address</p>
         </div>
